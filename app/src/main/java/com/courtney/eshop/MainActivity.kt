@@ -3,13 +3,20 @@ package com.courtney.eshop
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.design.snackbar
+import org.jetbrains.anko.info
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateListener {
 
     private val RC_SIGNUP: Int = 100
 
@@ -22,6 +29,39 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
+
+        btn_verify.setOnClickListener {
+            FirebaseAuth.getInstance().currentUser?.sendEmailVerification()
+                ?.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        it.snackbar("Verify Email Sent!").show()
+                    } else {
+
+                    }
+                }
+        }
+    }
+
+    override fun onAuthStateChanged(auth: FirebaseAuth) {
+        var user = auth.currentUser
+        info { "onAuthStateChanged: ${user?.uid}" }
+        if (user != null) {
+            txt_user_info.text = "${user.email} / ${user.isEmailVerified}"
+            btn_verify.visibility = if (user.isEmailVerified) View.GONE else View.VISIBLE
+        } else {
+            txt_user_info.text = "Not Sign In"
+            btn_verify.visibility = View.GONE
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        FirebaseAuth.getInstance().addAuthStateListener(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        FirebaseAuth.getInstance().removeAuthStateListener(this)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -41,16 +81,12 @@ class MainActivity : AppCompatActivity() {
                 startActivityForResult(intent, RC_SIGNUP)
                 true
             }
+            R.id.action_signout -> {
+                FirebaseAuth.getInstance().signOut()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RC_SIGNUP) {
-            if (resultCode == Activity.RESULT_OK) {
-
-            }
-        }
-    }
 }

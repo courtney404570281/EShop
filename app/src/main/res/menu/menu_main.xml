@@ -6,5 +6,6 @@
           android:title="@string/action_settings"
           android:orderInCategory="100"
           app:showAsAction="never"/>
-    <item android:title="Sign Up" android:id="@+id/action_signup"/>
+    <item android:title="Sign Up/Sign In" android:id="@+id/action_signup"/>
+    <item android:title="Sign Out" android:id="@+id/action_signout"/>
 </menu>

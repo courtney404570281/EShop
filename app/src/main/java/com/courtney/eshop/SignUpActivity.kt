@@ -15,30 +15,56 @@ class SignUpActivity : AppCompatActivity() {
         setContentView(R.layout.activity_sign_up)
 
         btn_signup.setOnClickListener {
-
-            val sEmail = edt_email.text.toString()
-            val sPassword = edt_password.text.toString()
-
-            FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(sEmail, sPassword)
-                .addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        alert {
-                            title = "Sign Up"
-                            message = "Account Created!"
-                            okButton {
-                                setResult(Activity.RESULT_OK)
-                                finish()
-                            }
-                        }.show()
-                    } else {
-                        alert {
-                            title = "Sign Up"
-                            message = it.exception.toString()
-                            okButton {  }
-                        }.show()
-                    }
-                }
+            signUp()
         }
+
+        btn_signin.setOnClickListener {
+            signIn()
+        }
+    }
+
+    private fun signUp() {
+        val sEmail = edt_email.text.toString()
+        val sPassword = edt_password.text.toString()
+
+        FirebaseAuth.getInstance()
+            .createUserWithEmailAndPassword(sEmail, sPassword)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    alert {
+                        title = "Sign Up"
+                        message = "Account Created!"
+                        okButton {
+                            setResult(Activity.RESULT_OK)
+                            finish()
+                        }
+                    }.show()
+                } else {
+                    alert {
+                        title = "Sign Up"
+                        message = it.exception.toString()
+                        okButton { }
+                    }.show()
+                }
+            }
+    }
+
+    private fun signIn() {
+        val sEmail = edt_email.text.toString()
+        val sPassword = edt_password.text.toString()
+        FirebaseAuth.getInstance()
+            .signInWithEmailAndPassword(sEmail, sPassword)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                } else {
+                    alert {
+                        title = "Sign In"
+                        message = it.exception.toString()
+                        okButton { }
+                    }.show()
+                }
+            }
     }
 }
