@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1078102269705-ovub1de4bfo165hmvdfa3r264rffl8g8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.courtney.eshop",
+            "certificate_hash": "a8d0f21e50e198b6c31e7fbf96d2b18207445c90"
+          }
+        },
+        {
           "client_id": "1078102269705-q35au6s5nggo7mbe5tf7r712i0nb0msj.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
