@@ -66,11 +66,18 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
 
                 override fun onBindViewHolder(holder: ItemHolder, position: Int, item: Item) {
                     holder.onBind(item)
+                    holder.itemView.setOnClickListener {
+                        itemClicked(item, position)
+                    }
                 }
             }
             adapter = firestoreAdapter
         }
 
+    }
+
+    private fun itemClicked(item: Item, position: Int) {
+        info { "itemClicked: $item $position" }
     }
 
     override fun onAuthStateChanged(auth: FirebaseAuth) {
