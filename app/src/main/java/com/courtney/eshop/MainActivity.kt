@@ -4,14 +4,17 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter
+import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import org.jetbrains.anko.AnkoLogger
@@ -22,6 +25,7 @@ import java.util.*
 class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateListener {
 
     private val RC_SIGNUP: Int = 100
+    private lateinit var firestoreAdapter: FirestoreRecyclerAdapter<Item, ItemHolder>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +47,30 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
                     }
                 }
         }
+
+        // setupRecyclerView
+        recycler.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            val query = FirebaseFirestore.getInstance()
+                .collection("items")
+                .limit(10)
+            val options = FirestoreRecyclerOptions.Builder<Item>()
+                .setQuery(query, Item::class.java)
+                .build()
+            firestoreAdapter = object : FirestoreRecyclerAdapter<Item, ItemHolder>(options) {
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.row_item, parent, false)
+                    return ItemHolder(view)
+                }
+
+                override fun onBindViewHolder(holder: ItemHolder, position: Int, item: Item) {
+                    holder.onBind(item)
+                }
+            }
+            adapter = firestoreAdapter
+        }
+
     }
 
     override fun onAuthStateChanged(auth: FirebaseAuth) {
@@ -50,7 +78,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
         info { "onAuthStateChanged: ${user?.uid}" }
         if (user != null) {
             txt_user_info.text = "${user.email} / ${user.isEmailVerified}"
-            btn_verify.visibility = if (user.isEmailVerified) View.GONE else View.VISIBLE
+            //btn_verify.visibility = if (user.isEmailVerified) View.GONE else View.VISIBLE
         } else {
             txt_user_info.text = "Not Sign In"
             btn_verify.visibility = View.GONE
@@ -60,11 +88,13 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
     override fun onStart() {
         super.onStart()
         FirebaseAuth.getInstance().addAuthStateListener(this)
+        firestoreAdapter.startListening()
     }
 
     override fun onStop() {
         super.onStop()
         FirebaseAuth.getInstance().removeAuthStateListener(this)
+        firestoreAdapter.stopListening()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
