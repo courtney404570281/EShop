@@ -85,7 +85,8 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
                     .setAvailableProviders(
                         Arrays.asList(
                             AuthUI.IdpConfig.EmailBuilder().build(),
-                            AuthUI.IdpConfig.GoogleBuilder().build()
+                            AuthUI.IdpConfig.GoogleBuilder().build(),
+                            AuthUI.IdpConfig.FacebookBuilder().build()
                         )
                     )
                     .setIsSmartLockEnabled(false)
