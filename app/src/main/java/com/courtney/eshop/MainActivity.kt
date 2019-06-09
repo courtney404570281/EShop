@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
@@ -15,6 +16,7 @@ import kotlinx.android.synthetic.main.content_main.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.info
+import java.util.*
 
 class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateListener {
 
@@ -77,8 +79,21 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
         return when (item.itemId) {
             R.id.action_settings -> true
             R.id.action_signup -> {
-                val intent = Intent(this, SignUpActivity::class.java)
-                startActivityForResult(intent, RC_SIGNUP)
+
+                startActivityForResult(AuthUI.getInstance()
+                    .createSignInIntentBuilder()
+                    .setAvailableProviders(
+                        Arrays.asList(
+                            AuthUI.IdpConfig.EmailBuilder().build(),
+                            AuthUI.IdpConfig.GoogleBuilder().build()
+                        )
+                    )
+                    .setIsSmartLockEnabled(false)
+                    .setLogo(R.drawable.shop)
+                    .build(), RC_SIGNUP)
+
+                /*val intent = Intent(this, SignUpActivity::class.java)
+                startActivityForResult(intent, RC_SIGNUP)*/
                 true
             }
             R.id.action_signout -> {
