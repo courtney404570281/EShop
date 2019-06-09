@@ -80,13 +80,18 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
             R.id.action_settings -> true
             R.id.action_signup -> {
 
+                val whiteList = listOf("tw", "hk", "cn", "au")
                 startActivityForResult(AuthUI.getInstance()
                     .createSignInIntentBuilder()
                     .setAvailableProviders(
                         Arrays.asList(
                             AuthUI.IdpConfig.EmailBuilder().build(),
                             AuthUI.IdpConfig.GoogleBuilder().build(),
-                            AuthUI.IdpConfig.FacebookBuilder().build()
+                            AuthUI.IdpConfig.FacebookBuilder().build(),
+                            AuthUI.IdpConfig.PhoneBuilder()
+                                .setWhitelistedCountries(whiteList)
+                                .setDefaultCountryIso("tw")
+                                .build()
                         )
                     )
                     .setIsSmartLockEnabled(false)
