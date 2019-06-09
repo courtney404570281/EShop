@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
@@ -81,6 +82,12 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
             R.id.action_signup -> {
 
                 val whiteList = listOf("tw", "hk", "cn", "au")
+                val myLayout = AuthMethodPickerLayout.Builder(R.layout.sign_up)
+                    .setEmailButtonId(R.id.img_email)
+                    .setGoogleButtonId(R.id.img_google)
+                    .setFacebookButtonId(R.id.img_fb)
+                    .setPhoneButtonId(R.id.img_sms)
+                    .build()
                 startActivityForResult(AuthUI.getInstance()
                     .createSignInIntentBuilder()
                     .setAvailableProviders(
@@ -96,6 +103,8 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
                     )
                     .setIsSmartLockEnabled(false)
                     .setLogo(R.drawable.shop)
+                    .setTheme(R.style.SignUp)
+                    .setAuthMethodPickerLayout(myLayout)
                     .build(), RC_SIGNUP)
 
                 /*val intent = Intent(this, SignUpActivity::class.java)
