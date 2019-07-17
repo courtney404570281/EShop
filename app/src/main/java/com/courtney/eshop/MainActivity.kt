@@ -2,10 +2,14 @@ package com.courtney.eshop
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.firebase.ui.auth.AuthMethodPickerLayout
@@ -25,8 +29,10 @@ import java.util.*
 class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateListener {
 
     private val RC_SIGNUP: Int = 100
-    private lateinit var firestoreAdapter: FirestoreRecyclerAdapter<Item, ItemHolder>
+    private  val TAG = MainActivity::class.java.simpleName
     var categories = mutableListOf<Category>()
+    lateinit var adapter: ItemAdapter
+    lateinit var itemViewModel: ItemViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +78,6 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
                             }
 
                             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                                setupAdapter()
                             }
 
                         }
@@ -84,46 +89,37 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
         recycler.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(this@MainActivity)
-            setupAdapter()
+            adapter = ItemAdapter(mutableListOf())
+            recycler.adapter = adapter
+            itemViewModel = ViewModelProviders.of(this@MainActivity)
+                .get(ItemViewModel::class.java)
+            itemViewModel.getItems().observe(this@MainActivity, androidx.lifecycle.Observer {
+                Log.d(TAG, "observe: ${it.size}")
+                (adapter as ItemAdapter).items = it
+                (adapter as ItemAdapter).notifyDataSetChanged()
+            })
         }
 
     }
 
-    private fun setupAdapter() {
-        val selected = spinner.selectedItemPosition
-        var query = if (selected > 0) {
-            firestoreAdapter.stopListening()
-            FirebaseFirestore.getInstance()
-                .collection("items")
-                .whereEqualTo("category", categories[selected].id)
-                .orderBy("viewCount", Query.Direction.DESCENDING)
-                .limit(10)
-        } else {
-            FirebaseFirestore.getInstance()
-                .collection("items")
-                .orderBy("viewCount", Query.Direction.DESCENDING)
-                .limit(10)
+    inner class ItemAdapter(var items: List<Item>) : RecyclerView.Adapter<ItemHolder> () {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
+            return ItemHolder(
+                LayoutInflater.from(parent.context).inflate(R.layout.row_item, parent, false)
+            )
         }
 
-        val options = FirestoreRecyclerOptions.Builder<Item>()
-            .setQuery(query, Item::class.java)
-            .build()
-        firestoreAdapter = object : FirestoreRecyclerAdapter<Item, ItemHolder>(options) {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.row_item, parent, false)
-                return ItemHolder(view)
-            }
+        override fun getItemCount(): Int {
+            return items.size
+        }
 
-            override fun onBindViewHolder(holder: ItemHolder, position: Int, item: Item) {
-                item.id = snapshots.getSnapshot(position).id
-                holder.onBind(item)
-                holder.itemView.setOnClickListener {
-                    itemClicked(item, position)
-                }
+        override fun onBindViewHolder(holder: ItemHolder, position: Int) {
+            holder.onBind(items[position])
+            holder.itemView.setOnClickListener {
+                itemClicked(items[position], position)
             }
         }
-        recycler.adapter = firestoreAdapter
-        firestoreAdapter.startListening()
+
     }
 
     private fun itemClicked(item: Item, position: Int) {
@@ -148,13 +144,11 @@ class MainActivity : AppCompatActivity(), AnkoLogger, FirebaseAuth.AuthStateList
     override fun onStart() {
         super.onStart()
         FirebaseAuth.getInstance().addAuthStateListener(this)
-        firestoreAdapter.startListening()
     }
 
     override fun onStop() {
         super.onStop()
         FirebaseAuth.getInstance().removeAuthStateListener(this)
-        firestoreAdapter.stopListening()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
